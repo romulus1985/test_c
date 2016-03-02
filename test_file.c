@@ -4,6 +4,40 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+void mymkdir(const char* path)
+{
+    int ret = access(path, F_OK);
+    int err = errno;
+    if(err)
+    {
+        const int mode = S_IRWXU | S_IRWXG | S_IRWXO;
+        ret = mkdir(path, mode);
+        err = errno;
+        if(ret)
+        {
+            printf("mkdir failed path = %s, errno = %d\n",
+                path, err);
+        }
+        else 
+        {
+            printf("mkdir %s success.\n", path);
+            ret = chmod(path, mode);
+            if(ret)
+            {
+                printf("chmod failed, path = %s\n", path);
+            }
+            else
+            {
+                printf("chmod success, path = %s\n", path);
+            }
+        }
+    }
+    else
+    {
+        printf("path = %s access ok\n", path);
+    }
+}
+
 void testLink()
 {
     //int ret = symlink("/home/root", "/work/root");
@@ -18,19 +52,32 @@ void testLink()
     {
         printf("%s not exist. errno = %d\n", 
             file, en);
-        const int mode = S_IRWXU | S_IRWXG | S_IROTH;
+        const int mode = S_IRWXU | S_IRWXG | S_IRWXO;
         ret = mkdir(file, mode);
+        en = errno;
         if(!ret)
         {
             printf("mkdir %s success.\n", file);
+        }
+        else 
+        {
+            printf("mkdir failed file = %s, errno = %d\n",
+                file, en);
         }
         //return 0;
     }
     
     ret = symlink("/home/root", "/tmp2/root");
-    en = errno;
-    printf("link result = %d, errno = %d\n", 
-        ret, en);
+    if(-1 == ret)
+    {
+        en = errno;
+        printf("link result = %d, errno = %d\n", 
+            ret, en);
+    } 
+    else
+    {
+        printf("link success\n");
+    }
 }
 
 void testFopen()
@@ -60,7 +107,9 @@ void testFopen()
 
 int main(int argc, char *argv[])
 {
-    //testLink();
-    testFopen();
+    mymkdir("/tmp2");
+    mymkdir("/tmp2/test");
+    testLink();
+    //testFopen();
     return 0;
 }
